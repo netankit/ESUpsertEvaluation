@@ -28,17 +28,18 @@ public class ContinousUpsertFieldEvaluation {
 		long num_of_iterations = Long.parseLong(args[0]);
 		String index_name = args[1];
 		String type_name = args[2];
+		String logFileName = args[3];
 
-		if (args.length != 3) {
+		if (args.length != 4) {
 			System.out
-					.println("java -jar ContinousUpsertFieldEvaluation <num_of_iterations> <index_name> <type_name>");
+					.println("java -jar ContinousUpsertFieldEvaluation <num_of_iterations> <index_name> <type_name> <logFileName>");
 			System.exit(0);
 		}
 
 		Logger log = Logger
 				.getLogger(ContinousUpsertEvaluation.class.getName());
 		FileHandler fh;
-		fh = new FileHandler("ContinousUpsertFieldEvaluation.log");
+		fh = new FileHandler(logFileName);
 		log.addHandler(fh);
 		SimpleFormatter formatter = new SimpleFormatter();
 		fh.setFormatter(formatter);
@@ -92,7 +93,7 @@ public class ContinousUpsertFieldEvaluation {
 	private static String getRandomFieldName() {
 
 		int min = 1;
-		int max = 2500;
+		int max = 250;
 
 		// Usually this should be a field rather than a method variable so
 		// that it is not re-seeded every call.
