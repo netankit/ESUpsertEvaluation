@@ -10,6 +10,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -51,6 +54,14 @@ public class ContinousUpsertEvaluation {
 			System.exit(0);
 		}
 
+		Logger log = Logger
+				.getLogger(ContinousUpsertEvaluation.class.getName());
+		FileHandler fh;
+		fh = new FileHandler("ContinousUpsertsLogFile.log");
+		log.addHandler(fh);
+		SimpleFormatter formatter = new SimpleFormatter();
+		fh.setFormatter(formatter);
+
 		/*
 		 * ES node and client initialization.
 		 */
@@ -73,7 +84,7 @@ public class ContinousUpsertEvaluation {
 
 		System.out.println("Starting Upsert Evaluation....");
 		for (int i = 0; i < num_of_documents; i++) {
-			System.out.println("Document Number: " + i);
+			// System.out.println("Document Number: " + i);
 
 			// Recording Start Time
 			long startTime = System.currentTimeMillis();
@@ -101,7 +112,11 @@ public class ContinousUpsertEvaluation {
 			// Recording Stop Time
 			long stopTime = System.currentTimeMillis();
 			long totalElapsedTime = stopTime - startTime;
-			System.out.println("Total Time Taken (ms): " + totalElapsedTime);
+			// System.out.println("Iteration: " + i + "Total Time Taken (ms): "
+			// + totalElapsedTime);
+
+			log.info("Iteration: " + i + "\tElapsed Time:" + totalElapsedTime);
+
 		}
 	}
 
