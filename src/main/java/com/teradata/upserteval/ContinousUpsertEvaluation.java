@@ -2,7 +2,13 @@ package com.teradata.upserteval;
 
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import org.elasticsearch.action.index.IndexRequest;
@@ -29,6 +35,7 @@ public class ContinousUpsertEvaluation {
 	 */
 	public static void main(String[] args) throws IOException,
 			InterruptedException, ExecutionException {
+		ArrayList<String> names = new ArrayList<String>();
 
 		/*
 		 * Command Line arguments
@@ -71,24 +78,105 @@ public class ContinousUpsertEvaluation {
 			// Recording Start Time
 			long startTime = System.currentTimeMillis();
 
+			String randomID = Integer.toString(getRandomNumber(1, 100000));
+
 			IndexRequest indexRequest = new IndexRequest(index_name, type_name,
-					"1").source(XContentFactory.jsonBuilder().startObject()
-					.field("name", "Ankit Bahuguna").field("gender", "male")
-					.field("city", "Munich").field("age", "24")
-					.field("telephoneNumber", "12345678910").endObject());
+					randomID).source(XContentFactory.jsonBuilder()
+					.startObject().field("name", getRandomName(names))
+					.field("gender", getRandomGender())
+					.field("city", getRandomCity())
+					.field("age", getRandomNumber(10, 95))
+					.field("telephoneNumber", getRandomNumber(990000, 999999))
+					.endObject());
 
 			UpdateRequest updateRequest = new UpdateRequest(index_name,
-					type_name, "1").doc(
+					type_name, randomID).doc(
 					XContentFactory.jsonBuilder().startObject()
-							.field("gender", "male").endObject()).upsert(
-					indexRequest);
+							.field("gender", getRandomGender())
+							.field("city", getRandomCity()).endObject())
+					.upsert(indexRequest);
 
 			updateResponse = client.update(updateRequest).get();
 
 			// Recording Stop Time
 			long stopTime = System.currentTimeMillis();
-			long totalTime = stopTime - startTime;
-			System.out.println("Total Time Taken (ms): " + totalTime);
+			long totalElapsedTime = stopTime - startTime;
+			System.out.println("Total Time Taken (ms): " + totalElapsedTime);
 		}
+	}
+
+	private static String getRandomGender() {
+
+		int max = 1;
+		int min = 0;
+		Random rand = new Random();
+
+		// nextInt is normally exclusive of the top value,
+		// so add 1 to make it inclusive
+		int randomNum = rand.nextInt((max - min) + 1) + min;
+
+		if (randomNum == 0) {
+			return "male";
+		} else {
+			return "female";
+		}
+
+	}
+
+	private static int getRandomNumber(int min, int max) {
+
+		// Usually this should be a field rather than a method variable so
+		// that it is not re-seeded every call.
+		Random rand = new Random();
+
+		// nextInt is normally exclusive of the top value,
+		// so add 1 to make it inclusive
+		int randomNum = rand.nextInt((max - min) + 1) + min;
+
+		return randomNum;
+	}
+
+	private static String getRandomCity() {
+
+		String[] cityList = { "MUNICH", "FRANKFURT", "DELHI", "MUMBAI",
+				"SAN FRANCISCO", "BERLIN", "SEATTLE", "NEW YORK", "VENICE",
+				"HAMBURG" };
+		// Usually this should be a field rather than a method variable so
+		// that it is not re-seeded every call.
+		Random rand = new Random();
+
+		// nextInt is normally exclusive of the top value,
+		// so add 1 to make it inclusive
+		int randomNum = rand.nextInt(cityList.length);
+
+		return cityList[randomNum];
+	}
+
+	private static String getRandomName(ArrayList<String> names) {
+		if (names.size() == 0) {
+			try {
+				// Open the file that is the first
+				// command line parameter
+				FileInputStream fstream = new FileInputStream(
+						"./src/main/resources/all_names.txt");
+				// Get the object of DataInputStream
+				DataInputStream in = new DataInputStream(fstream);
+				BufferedReader br = new BufferedReader(
+						new InputStreamReader(in));
+				String strLine;
+				// Read File Line By Line
+				while ((strLine = br.readLine()) != null) {
+					// Print the content on the console
+					names.add(strLine);
+				}
+				// Close the input stream
+				in.close();
+			} catch (Exception e) {// Catch exception if any
+				System.err.println("Error: " + e.getMessage());
+			}
+		}
+		int index = new Random().nextInt(names.size());
+		String random_name = names.get(index);
+		return random_name;
 	}
 }
