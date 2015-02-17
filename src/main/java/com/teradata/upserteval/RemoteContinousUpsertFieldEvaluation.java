@@ -14,10 +14,15 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.node.Node;
 
-public class ContinousUpsertFieldEvaluation {
+public class RemoteContinousUpsertFieldEvaluation {
+
 	public static void main(String[] args) throws SecurityException,
 			IOException, InterruptedException, ExecutionException {
 
@@ -25,16 +30,18 @@ public class ContinousUpsertFieldEvaluation {
 		 * Command Line arguments
 		 */
 
-		if (args.length != 5) {
+		if (args.length != 7) {
 			System.out
-					.println("java -jar ContinousUpsertFieldEvaluation <num_of_iterations> <index_name> <type_name> <logFileName> <num_of_fields>");
+					.println("java -jar RemoteContinousUpsertFieldEvaluation <ESHOST_NAME> <ES_CLUSERNAME> <num_of_iterations> <index_name> <type_name> <logFileName> <num_of_fields>");
 			System.exit(0);
 		}
-		long num_of_iterations = Long.parseLong(args[0]);
-		String index_name = args[1];
-		String type_name = args[2];
-		String logFileName = args[3];
-		int num_of_fields = Integer.parseInt(args[4]);
+		String ESHOST_NAME = args[0];
+		String ESCLUSTER_NAME = args[1];
+		long num_of_iterations = Long.parseLong(args[2]);
+		String index_name = args[3];
+		String type_name = args[4];
+		String logFileName = args[5];
+		int num_of_fields = Integer.parseInt(args[6]);
 
 		Logger log = Logger
 				.getLogger(ContinousUpsertEvaluation.class.getName());
@@ -49,7 +56,18 @@ public class ContinousUpsertFieldEvaluation {
 		 */
 		Node node = nodeBuilder().node();
 
-		Client client = node.client();
+		// Connects to Remote Client defined by the ESHOST_NAME and Cluster
+		// defined by ESCLUSTER_NAME
+
+		Settings settings = ImmutableSettings.settingsBuilder()
+				.put("cluster.name", ESCLUSTER_NAME).build();
+		Client client = new TransportClient(settings)
+				.addTransportAddress(new InetSocketTransportAddress(
+						ESHOST_NAME, 9300));
+
+		// Connects to a locally installed ES Instance.
+		// Client client = node.client();
+
 		String RANDOM_ID = "1";
 
 		System.out.println("Starting Upsert Evaluation....");
@@ -88,6 +106,8 @@ public class ContinousUpsertFieldEvaluation {
 			log.info("Iteration: " + i + "\tElapsed Time:" + totalElapsedTime);
 
 		}
+		// Closes the Remote Client on finishing the job.
+		client.close();
 
 	}
 
