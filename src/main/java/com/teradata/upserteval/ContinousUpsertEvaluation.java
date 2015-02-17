@@ -43,16 +43,15 @@ public class ContinousUpsertEvaluation {
 		/*
 		 * Command Line arguments
 		 */
-
-		long num_of_documents = Long.parseLong(args[0]);
-		String index_name = args[1];
-		String type_name = args[2];
-
 		if (args.length != 3) {
 			System.out
 					.println("java -jar ContinousUpsertEvaluation <num_of_documents> <index_name> <type_name>");
 			System.exit(0);
 		}
+
+		long num_of_documents = Long.parseLong(args[0]);
+		String index_name = args[1];
+		String type_name = args[2];
 
 		Logger log = Logger
 				.getLogger(ContinousUpsertEvaluation.class.getName());
