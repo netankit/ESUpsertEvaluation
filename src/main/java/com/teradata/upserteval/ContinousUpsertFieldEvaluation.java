@@ -25,16 +25,16 @@ public class ContinousUpsertFieldEvaluation {
 		 * Command Line arguments
 		 */
 
+		if (args.length != 5) {
+			System.out
+					.println("java -jar ContinousUpsertFieldEvaluation <num_of_iterations> <index_name> <type_name> <logFileName> <num_of_fields>");
+			System.exit(0);
+		}
 		long num_of_iterations = Long.parseLong(args[0]);
 		String index_name = args[1];
 		String type_name = args[2];
 		String logFileName = args[3];
-
-		if (args.length != 4) {
-			System.out
-					.println("java -jar ContinousUpsertFieldEvaluation <num_of_iterations> <index_name> <type_name> <logFileName>");
-			System.exit(0);
-		}
+		int num_of_fields = Integer.parseInt(args[4]);
 
 		Logger log = Logger
 				.getLogger(ContinousUpsertEvaluation.class.getName());
@@ -62,9 +62,9 @@ public class ContinousUpsertFieldEvaluation {
 					RANDOM_ID).source(XContentFactory
 					.jsonBuilder()
 					.startObject()
-					.field(getRandomFieldName(),
+					.field(getRandomFieldName(num_of_fields),
 							RandomStringUtils.randomAlphabetic(15))
-					.field(getRandomFieldName(),
+					.field(getRandomFieldName(num_of_fields),
 							RandomStringUtils.randomNumeric(8)).endObject());
 
 			UpdateRequest updateRequest = new UpdateRequest(index_name,
@@ -72,7 +72,7 @@ public class ContinousUpsertFieldEvaluation {
 					XContentFactory
 							.jsonBuilder()
 							.startObject()
-							.field(getRandomFieldName(),
+							.field(getRandomFieldName(num_of_fields),
 									RandomStringUtils.randomAlphabetic(12))
 							.endObject()).upsert(indexRequest);
 
@@ -90,10 +90,10 @@ public class ContinousUpsertFieldEvaluation {
 
 	}
 
-	private static String getRandomFieldName() {
+	private static String getRandomFieldName(int num_of_fields) {
 
 		int min = 1;
-		int max = 250;
+		int max = num_of_fields;
 
 		// Usually this should be a field rather than a method variable so
 		// that it is not re-seeded every call.
